@@ -3,12 +3,9 @@
   "name": "jotai-todo",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
-  "bin": {
-    "jotai-cloudfront-functions": "infra/index.js"
-  },
   "scripts": {
-    "cdk:deploy": "cdk deploy --require-approval never",
+    "cdk:build": "npx tsc --target ES2022 --moduleResolution node --module commonjs infra/index.ts",
+    "cdk:deploy": "pnpm build && pnpm cdk:build && cdk deploy --require-approval never",
     "cdk:diff": "cdk diff",
     "cdk:synthesize": "cdk synth",
     "dev": "vite",

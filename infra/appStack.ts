@@ -51,7 +51,16 @@ export class JotaiTodoStack extends Stack {
 
     // Create a CloudFront distribution for the React app
     const distribution = new Distribution(this, "JotaiTodoDistribution", {
-      defaultBehavior: { origin: new S3StaticWebsiteOrigin(bucket) },
+      defaultBehavior: {
+        origin: new S3StaticWebsiteOrigin(bucket),
+      },
+      errorResponses: [
+        {
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: "/index.html",
+        },
+      ],
     });
 
     // Deploy the React app to the S3 bucket

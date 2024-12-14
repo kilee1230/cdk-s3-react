@@ -1,6 +1,7 @@
-#!/opt/homebrew/opt/node/bin/node
+#!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import { JotaiTodoStack } from "./appStack";
 
 const app = new cdk.App();
 new JotaiTodoStack(app, "JotaiTodoStack");
+app.synth();

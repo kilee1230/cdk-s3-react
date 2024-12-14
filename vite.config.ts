@@ -4,7 +4,6 @@ import babel from "vite-plugin-babel";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/jotai-todo/",
   plugins: [
     react(),
     babel({
