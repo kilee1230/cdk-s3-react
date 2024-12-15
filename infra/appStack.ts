@@ -1,5 +1,19 @@
-import { RemovalPolicy, Stack, StackProps, CfnOutput } from "aws-cdk-lib";
-import { Distribution } from "aws-cdk-lib/aws-cloudfront";
+import {
+  RemovalPolicy,
+  Stack,
+  StackProps,
+  CfnOutput,
+  Duration,
+} from "aws-cdk-lib";
+import {
+  AllowedMethods,
+  CachedMethods,
+  Distribution,
+  OriginAccessIdentity,
+  OriginRequestPolicy,
+  ResponseHeadersPolicy,
+  ViewerProtocolPolicy,
+} from "aws-cdk-lib/aws-cloudfront";
 import { S3StaticWebsiteOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
@@ -41,30 +55,45 @@ export class JotaiTodoStack extends Stack {
       // Specifies the index document for the S3-hosted website, which is typically 'index.html'.
       websiteIndexDocument: "index.html",
 
-      // Specifies the error document for the S3-hosted website, used when an error occurs,
-      // such as a 404 error, typically pointing to the same 'index.html'.
-      websiteErrorDocument: "index.html",
-
       // Always destroys the bucket and its contents when the stack is deleted.
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
+    const originAccessIdentity = new OriginAccessIdentity(
+      this,
+      "OriginAccessIdentity"
+    );
+    bucket.grantRead(originAccessIdentity);
+
     // Create a CloudFront distribution for the React app
     const distribution = new Distribution(this, "JotaiTodoDistribution", {
       defaultBehavior: {
-        origin: new S3StaticWebsiteOrigin(bucket),
+        origin: new S3StaticWebsiteOrigin(bucket, {
+          customHeaders: {
+            "x-origin-access-identity":
+              originAccessIdentity.originAccessIdentityId,
+          },
+        }),
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        originRequestPolicy: OriginRequestPolicy.CORS_S3_ORIGIN,
+        responseHeadersPolicy: ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS, // needed for cors
+        cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS, // needed for cors
       },
       errorResponses: [
         {
-          httpStatus: 404,
+          // for single page application router support
+          httpStatus: 403, //forbidden
           responseHttpStatus: 200,
           responsePagePath: "/index.html",
+          ttl: Duration.minutes(10),
         },
       ],
+      defaultRootObject: "index.html",
     });
 
     // Deploy the React app to the S3 bucket
-    new BucketDeployment(this, "DeployReactApp", {
+    new BucketDeployment(this, "JotaiTodoWebApp", {
       sources: [Source.asset("./dist")],
       destinationBucket: bucket,
       distribution, // Invalidate CloudFront cache on new deploy
