@@ -14,8 +14,12 @@ import {
   ResponseHeadersPolicy,
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
-import { S3StaticWebsiteOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
-import { Bucket } from "aws-cdk-lib/aws-s3";
+import { S3BucketOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
+import {
+  BlockPublicAccess,
+  Bucket,
+  BucketAccessControl,
+} from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
 
@@ -25,28 +29,13 @@ export class JotaiTodoStack extends Stack {
 
     // Create an S3 bucket to host the React app
     const bucket = new Bucket(this, "JotaiTodoBucket", {
+      bucketName: `${Stack.of(this).stackName.toLowerCase()}-bucket`,
       // Enables versioning for the bucket, ensuring that every update to objects
       // will be stored as a new version, while keeping older versions available.
       versioned: true,
 
-      // Grants public read access to the contents of the bucket, making the assets
-      // publicly available over the web.
-      publicReadAccess: true,
-
-      // Configures public access settings for the bucket.
-      blockPublicAccess: {
-        // Allows public ACLs (Access Control Lists) to be attached to bucket objects.
-        blockPublicAcls: false,
-
-        // Allows bucket policies that grant public access to remain in place.
-        blockPublicPolicy: false,
-
-        // Does not ignore any public ACLs that are attached to objects within the bucket.
-        ignorePublicAcls: false,
-
-        // Does not restrict the bucket from being publicly accessible.
-        restrictPublicBuckets: false,
-      },
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      accessControl: BucketAccessControl.PRIVATE,
 
       // Enforces SSL (Secure Socket Layer) connections when accessing the bucket,
       // ensuring secure communication over HTTPS.
@@ -68,12 +57,7 @@ export class JotaiTodoStack extends Stack {
     // Create a CloudFront distribution for the React app
     const distribution = new Distribution(this, "JotaiTodoDistribution", {
       defaultBehavior: {
-        origin: new S3StaticWebsiteOrigin(bucket, {
-          customHeaders: {
-            "x-origin-access-identity":
-              originAccessIdentity.originAccessIdentityId,
-          },
-        }),
+        origin: S3BucketOrigin.withOriginAccessControl(bucket),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         originRequestPolicy: OriginRequestPolicy.CORS_S3_ORIGIN,
         responseHeadersPolicy: ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
