@@ -9,7 +9,6 @@ import {
   AllowedMethods,
   CachedMethods,
   Distribution,
-  OriginAccessIdentity,
   OriginRequestPolicy,
   ResponseHeadersPolicy,
   ViewerProtocolPolicy,
@@ -30,29 +29,13 @@ export class JotaiTodoStack extends Stack {
     // Create an S3 bucket to host the React app
     const bucket = new Bucket(this, "JotaiTodoBucket", {
       bucketName: `${Stack.of(this).stackName.toLowerCase()}-bucket`,
-      // Enables versioning for the bucket, ensuring that every update to objects
-      // will be stored as a new version, while keeping older versions available.
       versioned: true,
-
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       accessControl: BucketAccessControl.PRIVATE,
-
-      // Enforces SSL (Secure Socket Layer) connections when accessing the bucket,
-      // ensuring secure communication over HTTPS.
       enforceSSL: true,
-
-      // Specifies the index document for the S3-hosted website, which is typically 'index.html'.
       websiteIndexDocument: "index.html",
-
-      // Always destroys the bucket and its contents when the stack is deleted.
       removalPolicy: RemovalPolicy.DESTROY,
     });
-
-    const originAccessIdentity = new OriginAccessIdentity(
-      this,
-      "OriginAccessIdentity"
-    );
-    bucket.grantRead(originAccessIdentity);
 
     // Create a CloudFront distribution for the React app
     const distribution = new Distribution(this, "JotaiTodoDistribution", {

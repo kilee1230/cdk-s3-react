@@ -4,7 +4,7 @@ import { JotaiTodoStack } from "./appStack";
 
 const app = new cdk.App();
 new JotaiTodoStack(app, "JotaiTodoStack", {
-  stackName: "jotai-todo-stack",
+  stackName: "jotai-todo-app",
 });
 
 app.synth();
