@@ -8,7 +8,7 @@
   },
   "scripts": {
     "cdk:build": "npx tsc --target ES2022 --moduleResolution node --module commonjs infra/index.ts",
-    "cdk:deploy": "pnpm build && cdk deploy --require-approval never",
+    "cdk:deploy": "cdk deploy --require-approval never",
     "cdk:diff": "cdk diff",
     "cdk:synthesize": "cdk synth",
     "dev": "vite",

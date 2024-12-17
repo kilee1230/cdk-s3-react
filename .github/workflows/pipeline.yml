@@ -25,7 +25,7 @@ jobs:
     - name: Build CDK stack
       run: pnpm cdk:build
 
-    - name: Deploy AWS CDK Stack
+    - name: Deploy frontend and CDK stack
       run: pnpm cdk:deploy
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
